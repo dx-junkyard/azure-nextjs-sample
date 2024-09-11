@@ -1,0 +1,36 @@
+name: Build and Deploy to GHCR and Azure Web App
+
+on:
+  push:
+    branches:
+      - main  # mainブランチにプッシュされたときに実行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
+    - name: Log in to GHCR
+      run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+    - name: Build Docker image
+      run: docker build . -t ghcr.io/${{ secrets.GHCR_USERNAME }}/nextjs-app:${{ github.sha }}
+
+    - name: Push Docker image to GHCR
+      run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/nextjs-app:${{ github.sha }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        images: ghcr.io/${{ secrets.GHCR_USERNAME }}/nextjs-app:${{ github.sha }}
+        azure-rg: <Your-Azure-Resource-Group-Name>
+        azure-subscription: <Your-Azure-Subscription-ID>

@@ -3,7 +3,7 @@ name: Build and Deploy to GHCR and Azure Web App
 on:
   push:
     branches:
-      - main  # mainブランチにプッシュされたときに実行
+      - master  # masterブランチにプッシュされたときに実行
 
 jobs:
   build:
